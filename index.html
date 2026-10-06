@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JIT ACRYLIC — Custom Acrylic Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+
+    --paper:#FFFFFF;
+    --panel:#FFFFFF;
+    --panel-2:#E5E5E5;
+    --ink:#000000;
+    --ink-soft:#404040;
+    --ink-faint:#8C8C8C;
+    --line:#E5E5E5;
+    --teal:#14213D;
+    --teal-ink:#14213D;
+    --teal-tint:#E9EBF1;
+    --amber:#FCA311;
+    --amber-ink:#8A5600;
+    --amber-tint:#FEF0DC;
+    --font-display:'Space Grotesk','Arial Narrow',sans-serif;
+    --font-body:'IBM Plex Sans','Segoe UI',sans-serif;
+    --container:1160px;
+  }
+  html{scroll-padding-top:76px;-webkit-text-size-adjust:100%;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0B0B0C;
+      --panel:#161616;
+      --panel-2:#212121;
+      --ink:#F5F5F5;
+      --ink-soft:#BDBDBD;
+      --ink-faint:#8C8C8C;
+      --line:#2A2A2A;
+      --teal:#5B7FB5;
+      --teal-ink:#9FB4D8;
+      --teal-tint:#161E2C;
+      --amber:#FCA311;
+      --amber-ink:#FFC98A;
+      --amber-tint:#2B2010;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0B0B0C; --panel:#161616; --panel-2:#212121; --ink:#F5F5F5;
+    --ink-soft:#BDBDBD; --ink-faint:#8C8C8C; --line:#2A2A2A; --teal:#5B7FB5;
+    --teal-ink:#9FB4D8; --teal-tint:#161E2C; --amber:#FCA311; --amber-ink:#FFC98A; --amber-tint:#2B2010;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  img,svg{max-width:100%;}
+  a{color:inherit;}
+  h1,h2,h3,h4{font-family:var(--font-display);margin:0;letter-spacing:-0.01em;}
+  p{margin:0;}
+  .icon{width:22px;height:22px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+  .wrap{max-width:var(--container);margin:0 auto;padding:0 24px;}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:3px;}
+
+  /* skip link */
+  .skip{position:fixed;top:-60px;left:12px;z-index:200;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:3px;transition:top .15s;}
+  .skip:focus{top:12px;}
+
+  /* ---------- header ---------- */
+  header{position:sticky;top:0;z-index:100;background:color-mix(in srgb, var(--paper) 92%, transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);}
+  .nav-row{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:1.15rem;text-decoration:none;color:var(--ink);}
+  .brand-mark{width:30px;height:30px;border:1.5px solid var(--ink);position:relative;flex:none;}
+  .brand-mark::before,.brand-mark::after{content:"";position:absolute;background:var(--teal);}
+  .brand-mark::before{top:5px;left:5px;right:5px;height:2px;}
+  .brand-mark::after{top:5px;left:5px;bottom:5px;width:2px;}
+  nav.primary{display:flex;align-items:center;gap:28px;}
+  nav.primary a{font-size:0.95rem;text-decoration:none;color:var(--ink-soft);padding:6px 2px;border-bottom:1px solid transparent;}
+  nav.primary a:hover{color:var(--ink);border-color:var(--teal);}
+  .nav-actions{display:flex;align-items:center;gap:10px;}
+  .theme-btn{width:36px;height:36px;border:1px solid var(--line);background:var(--panel);border-radius:3px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-soft);}
+  .theme-btn:hover{color:var(--ink);border-color:var(--ink-faint);}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-body);font-weight:600;font-size:0.92rem;padding:11px 18px;border-radius:3px;text-decoration:none;border:1px solid transparent;cursor:pointer;white-space:nowrap;}
+  .btn-primary{background:var(--ink);color:var(--paper);}
+  .btn-primary:hover{background:var(--teal-ink);}
+  .btn-line{border-color:var(--ink);color:var(--ink);background:transparent;}
+  .btn-line:hover{background:var(--ink);color:var(--paper);}
+  .hamburger{display:none;width:40px;height:40px;border:1px solid var(--line);background:var(--panel);border-radius:3px;align-items:center;justify-content:center;cursor:pointer;}
+  .hamburger span,.hamburger span::before,.hamburger span::after{content:"";display:block;width:18px;height:1.5px;background:var(--ink);position:relative;}
+  .hamburger span::before{position:absolute;top:-6px;}
+  .hamburger span::after{position:absolute;top:6px;}
+
+  @media (max-width:860px){
+    nav.primary{position:fixed;inset:68px 0 auto 0;background:var(--paper);border-bottom:1px solid var(--line);flex-direction:column;align-items:flex-start;gap:0;padding:8px 24px 18px;transform:translateY(-8px);opacity:0;pointer-events:none;transition:.15s;}
+    nav.primary.open{transform:translateY(0);opacity:1;pointer-events:auto;}
+    nav.primary a{width:100%;padding:12px 0;border-bottom:1px solid var(--line);}
+    .hamburger{display:flex;}
+    .nav-actions .btn-primary{display:none;}
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:64px 0 40px;overflow:hidden;}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;align-items:center;}
+  .eyebrow-line{display:flex;align-items:center;gap:10px;color:var(--ink-faint);font-size:0.85rem;margin-bottom:20px;}
+  .eyebrow-line .tick{width:26px;height:1px;background:var(--ink-faint);}
+  h1.hero-h{font-size:clamp(2.1rem,4.4vw,3.4rem);line-height:1.06;font-weight:700;max-width:12.5ch;}
+  .hero-sub{margin-top:22px;font-size:1.08rem;color:var(--ink-soft);max-width:46ch;line-height:1.6;}
+  .hero-ctas{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap;}
+  .hero-stats{display:flex;gap:28px;margin-top:40px;flex-wrap:wrap;}
+  .hero-stats div{border-left:2px solid var(--teal);padding-left:12px;}
+  .hero-stats strong{display:block;font-family:var(--font-display);font-size:1.5rem;}
+  .hero-stats span{font-size:0.85rem;color:var(--ink-faint);}
+
+  .hero-art{position:relative;height:380px;}
+  .hero-art svg{width:100%;height:100%;overflow:visible;}
+  .art-panel{transform-box:fill-box;transform-origin:50% 50%;}
+  @media (prefers-reduced-motion:no-preference){
+    .art-panel{animation:settle .9s cubic-bezier(.2,.7,.2,1) both;}
+    .art-panel.p1{animation-delay:.02s;}
+    .art-panel.p2{animation-delay:.12s;}
+    .art-panel.p3{animation-delay:.22s;}
+    .art-label{animation:fadeIn .6s ease .55s both;}
+  }
+  @keyframes settle{from{opacity:0;transform:translateY(18px) rotate(var(--rot,0deg)) scale(.96);}to{opacity:1;transform:translateY(0) rotate(var(--rot,0deg)) scale(1);}}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-art{height:260px;order:-1;}
+  }
+
+  /* ---------- section basics ---------- */
+  section{padding:76px 0;}
+  .section-head{max-width:640px;margin-bottom:40px;}
+  .kicker{color:var(--teal-ink);font-weight:600;font-size:0.9rem;margin-bottom:10px;}
+  .kicker.amber{color:var(--amber-ink);}
+  h2.section-h{font-size:clamp(1.5rem,2.6vw,2.1rem);font-weight:700;}
+  .section-p{margin-top:12px;color:var(--ink-soft);font-size:1.02rem;max-width:60ch;line-height:1.6;}
+  hr.rule{border:none;border-top:1px solid var(--line);margin:0;}
+
+  /* ---------- category grid (nesting sheet) ---------- */
+  .catgrid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,minmax(112px,auto));gap:1px;background:var(--line);border:1px solid var(--line);}
+  .catgrid a{background:var(--panel);padding:22px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;justify-content:space-between;}
+  .catgrid a:hover{background:var(--panel-2);}
+  .catgrid a:hover h3{color:var(--teal-ink);}
+  .catgrid h3{font-size:1.05rem;font-weight:600;margin-top:14px;}
+  .catgrid p{font-size:0.88rem;color:var(--ink-faint);margin-top:6px;line-height:1.45;}
+  .cat-sig{grid-column:1/3;grid-row:1/3;}
+  .cat-corp{grid-column:3/5;grid-row:1/3;}
+  .cat-cafe{grid-column:1/3;grid-row:3/4;}
+  .cat-retail{grid-column:3/5;grid-row:3/4;}
+  .cat-wed{grid-column:1/3;grid-row:4/5;}
+  .cat-home{grid-column:3/4;grid-row:4/5;}
+  .cat-auto{grid-column:4/5;grid-row:4/5;}
+  .cat-sig .icon,.cat-corp .icon{width:30px;height:30px;}
+  .cat-sig h3,.cat-corp h3{font-size:1.35rem;}
+
+  @media (max-width:760px){
+    .catgrid{grid-template-columns:1fr;grid-template-rows:none;}
+    .catgrid a,.cat-sig,.cat-cafe,.cat-corp,.cat-retail,.cat-wed,.cat-home,.cat-auto{grid-column:auto;grid-row:auto;}
+  }
+
+  /* ---------- category detail sections ---------- */
+  .cat-section{scroll-margin-top:76px;}
+  .cat-section .section-head{display:flex;align-items:flex-start;gap:16px;max-width:none;}
+  .cat-icon-badge{width:52px;height:52px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;background:var(--panel);}
+  .tone-teal .cat-icon-badge{color:var(--teal-ink);}
+  .tone-amber .cat-icon-badge{color:var(--amber);}
+
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);}
+  .pcard{background:var(--panel);padding:20px;}
+  .pcard h4{font-size:1rem;font-weight:600;}
+  .pcard .who{margin-top:8px;font-size:0.85rem;color:var(--ink-faint);}
+  .pcard .opts{margin-top:4px;font-size:0.85rem;color:var(--ink-soft);}
+
+  details.more{margin-top:1px;border:1px solid var(--line);border-top:none;}
+  details.more summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:16px 20px;font-size:0.92rem;font-weight:600;color:var(--ink-soft);background:var(--panel);}
+  details.more summary::-webkit-details-marker{display:none;}
+  details.more summary .icon{width:16px;height:16px;transition:transform .15s;}
+  details.more[open] summary .icon{transform:rotate(45deg);}
+  details.more summary:hover{color:var(--ink);}
+  .mlist{border-top:1px solid var(--line);}
+  .mrow{display:flex;justify-content:space-between;gap:16px;padding:12px 20px;font-size:0.9rem;border-top:1px solid var(--line);background:var(--panel);}
+  .mrow:first-child{border-top:none;}
+  .mrow .mname{color:var(--ink);}
+  .mrow .mwho{color:var(--ink-faint);text-align:right;}
+
+  .bundle{margin-top:28px;border:1px dashed var(--teal);background:var(--teal-tint);padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
+  .bundle h4{font-size:1rem;}
+  .bundle p{font-size:0.9rem;color:var(--ink-soft);margin-top:4px;}
+
+  /* ---------- process ---------- */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:8px;}
+  .step{background:var(--panel);padding:26px 22px;}
+  .step .num{font-family:var(--font-display);font-size:1.6rem;color:var(--line);}
+  .step h4{margin-top:14px;font-size:1.02rem;}
+  .step p{margin-top:8px;font-size:0.9rem;color:var(--ink-soft);line-height:1.55;}
+  @media (max-width:760px){.steps{grid-template-columns:1fr;}}
+
+  /* ---------- pricing ---------- */
+  .price-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+  .price-tile{background:var(--panel);padding:22px 18px;text-decoration:none;color:var(--ink);}
+  .price-tile:hover{background:var(--panel-2);}
+  .price-tile h4{font-size:0.98rem;}
+  .price-tile p{margin-top:8px;font-size:0.84rem;color:var(--ink-faint);line-height:1.45;}
+  @media (max-width:900px){.price-strip{grid-template-columns:repeat(2,1fr);}}
+  .price-note{margin-top:28px;font-size:0.92rem;color:var(--ink-soft);max-width:64ch;line-height:1.6;}
+
+  /* ---------- commercial / advertising / branding uses ---------- */
+  .uses-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+  .uses-tile{background:var(--panel);padding:22px 20px;}
+  .uses-tile .icon{color:var(--teal-ink);}
+  .uses-tile h4{margin-top:14px;font-size:1rem;font-weight:600;}
+  .uses-tile ul{list-style:none;margin:12px 0 0;padding:0;}
+  .uses-tile li{font-size:0.86rem;color:var(--ink-soft);padding:5px 0;border-top:1px solid var(--line);}
+  .uses-tile li:first-child{border-top:none;}
+  .finishes-note{margin-top:24px;font-size:0.92rem;color:var(--ink-soft);max-width:72ch;line-height:1.6;}
+  @media (max-width:860px){.uses-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:520px){.uses-grid{grid-template-columns:1fr;}}
+
+  /* ---------- audience row ---------- */
+  .audience{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:8px;}
+  .audience div{flex:1 1 140px;background:var(--panel);padding:20px;text-align:center;font-size:0.9rem;color:var(--ink-soft);}
+  .audience .icon{margin:0 auto 10px;}
+
+  /* ---------- contact / footer ---------- */
+  /* footer is a fixed black anchor block — intentionally constant in both light and dark site modes */
+  #contact{background:#000000;color:#FFFFFF;}
+  #contact .kicker{color:#7C9CD4;}
+  #contact h2.section-h{color:#FFFFFF;}
+  #contact .section-p{color:#BFBFBF;}
+  .contact-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:50px;margin-top:36px;}
+  .contact-cta{border:1px solid #2A2A2A;padding:28px;background:#161616;}
+  .contact-cta h3{font-size:1.1rem;color:#FFFFFF;}
+  .contact-cta p{margin-top:8px;font-size:0.92rem;color:#BFBFBF;}
+  .contact-cta .btn{margin-top:18px;}
+  .info-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .info-cols h5{font-size:0.82rem;color:#8C8C8C;font-weight:600;margin-bottom:12px;}
+  .info-cols a,.info-cols li{display:block;font-size:0.92rem;color:#D9D9D9;text-decoration:none;padding:5px 0;list-style:none;margin:0;}
+  .info-cols a:hover{color:#FFFFFF;}
+  @media (max-width:800px){.contact-grid{grid-template-columns:1fr;}}
+  .foot-bottom{margin-top:56px;padding-top:24px;border-top:1px solid #2A2A2A;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:0.82rem;color:#8C8C8C;}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- icon sprite -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="icon-sign" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="10" rx="1"/><path d="M9 15v4M15 15v4M7 19h10"/></symbol>
+  <symbol id="icon-qr" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="0.5"/><rect x="14" y="4" width="6" height="6" rx="0.5"/><rect x="4" y="14" width="6" height="6" rx="0.5"/><rect x="15" y="15" width="1.6" height="1.6" fill="currentColor" stroke="none"/><rect x="18.4" y="15" width="1.6" height="1.6" fill="currentColor" stroke="none"/><rect x="15" y="18.4" width="1.6" height="1.6" fill="currentColor" stroke="none"/><rect x="18.4" y="18.4" width="1.6" height="1.6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-stand" viewBox="0 0 24 24"><path d="M4 20h16M6 20v-4h4v4M12 20v-8h4v8"/></symbol>
+  <symbol id="icon-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M9 12.5 7 21l5-3 5 3-2-8.5"/></symbol>
+  <symbol id="icon-arch" viewBox="0 0 24 24"><path d="M5 20V11a7 7 0 0 1 14 0v9"/><path d="M5 20h14"/></symbol>
+  <symbol id="icon-key" viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"/><path d="M11 11l9 9M17 17l2-2M19 19l2-2"/></symbol>
+  <symbol id="icon-shelf" viewBox="0 0 24 24"><path d="M4 9h16M4 9v11h16V9M8 9V5h8v4"/></symbol>
+  <symbol id="icon-car" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="7" rx="2"/><circle cx="7.5" cy="16" r="1.5"/><circle cx="16.5" cy="16" r="1.5"/><path d="M5 9l2-4h10l2 4"/></symbol>
+  <symbol id="icon-ad" viewBox="0 0 24 24"><path d="M4 9v6h3l6 4V5l-6 4H4Z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></symbol>
+  <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 3 6.2L4 20l1.8-3A7.96 7.96 0 0 1 4 12Z"/></symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></symbol>
+  <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6 19 19M5 19l1.4-1.4M17.6 6.4 19 5"/></symbol>
+</svg>
+
+<header>
+  <div class="wrap nav-row">
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>JIT ACRYLIC</a>
+    <nav class="primary" id="primaryNav">
+      <a href="#lookbook">Lookbook</a>
+      <a href="#process">Process</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode"><svg class="icon" style="width:18px;height:18px"><use href="#icon-sun"></use></svg></button>
+      <a class="btn btn-primary" href="#contact">Get a quotation</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow-line"><span class="tick"></span>Custom acrylic fabrication, Klang Valley &amp; nationwide</div>
+        <h1 class="hero-h">Acrylic, cut to exactly what you need.</h1>
+        <p class="hero-sub">Signage, displays and personalised pieces — designed, cut and finished to order.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#contact">Get a quotation</a>
+          <a class="btn btn-line" href="#lookbook">Browse the lookbook</a>
+        </div>
+        <div class="hero-stats">
+          <div><strong>8</strong><span>product families</span></div>
+          <div><strong>30+</strong><span>ready-to-order designs</span></div>
+          <div><strong>1</strong><span>custom size on everything</span></div>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 420 380" fill="none">
+          <g class="art-panel p1" style="--rot:-6deg">
+            <rect x="70" y="70" width="230" height="150" rx="2" fill="var(--panel)" stroke="var(--line)"/>
+          </g>
+          <g class="art-panel p2" style="--rot:4deg">
+            <rect x="120" y="130" width="230" height="150" rx="2" fill="var(--teal-tint)" stroke="var(--teal)"/>
+            <line x1="120" y1="280" x2="350" y2="280" stroke="var(--teal)" stroke-width="3"/>
+          </g>
+          <g class="art-panel p3" style="--rot:-2deg">
+            <rect x="95" y="180" width="180" height="90" rx="2" fill="var(--amber-tint)" stroke="var(--amber)"/>
+            <line x1="95" y1="270" x2="275" y2="270" stroke="var(--amber)" stroke-width="3"/>
+          </g>
+          <g class="art-label" transform="translate(150,210)">
+            <text x="0" y="0" font-family="Space Grotesk" font-size="16" font-weight="700" fill="var(--ink)">JIT ACRYLIC</text>
+            <text x="0" y="18" font-family="IBM Plex Sans" font-size="10" fill="var(--ink-faint)">CUSTOM ACRYLIC</text>
+          </g>
+          <g stroke="var(--ink-faint)" stroke-width="1">
+            <line x1="40" y1="330" x2="380" y2="330"/>
+            <line x1="40" y1="326" x2="40" y2="334"/>
+            <line x1="120" y1="326" x2="120" y2="334"/>
+            <line x1="200" y1="326" x2="200" y2="334"/>
+            <line x1="280" y1="326" x2="280" y2="334"/>
+            <line x1="380" y1="326" x2="380" y2="334"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ===== COMMERCIAL / ADVERTISING / BRANDING USES ===== -->
+  <section id="uses">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Brand &amp; commercial uses</div>
+        <h2 class="section-h">Where acrylic works for your brand</h2>
+        <p class="section-p">From retail displays and promotional signage to corporate branding and event installations — each piece made to match your colours, logo and space.</p>
+      </div>
+      <div class="uses-grid">
+        <div class="uses-tile">
+          <svg class="icon"><use href="#icon-stand"></use></svg>
+          <h4>Commercial displays</h4>
+          <ul>
+            <li>Point-of-purchase stands</li>
+            <li>Cosmetic &amp; jewellery displays</li>
+            <li>Lockable premium-merchandise cases</li>
+            <li>Trade-show showcases</li>
+          </ul>
+        </div>
+        <div class="uses-tile">
+          <svg class="icon"><use href="#icon-ad"></use></svg>
+          <h4>Advertising</h4>
+          <ul>
+            <li>Window &amp; storefront panels</li>
+            <li>Backlit signs &amp; LED boards</li>
+            <li>Pop-up &amp; roadshow fixtures</li>
+            <li>Photo backdrops &amp; branded props</li>
+          </ul>
+        </div>
+        <div class="uses-tile">
+          <svg class="icon"><use href="#icon-award"></use></svg>
+          <h4>Corporate branding</h4>
+          <ul>
+            <li>Reception &amp; feature-wall logos</li>
+            <li>Directories &amp; wayfinding</li>
+            <li>Branded info panels</li>
+            <li>Award &amp; recognition boards</li>
+          </ul>
+        </div>
+        <div class="uses-tile">
+          <svg class="icon"><use href="#icon-arch"></use></svg>
+          <h4>Event branding</h4>
+          <ul>
+            <li>Stage &amp; podium branding</li>
+            <li>Sponsor walls &amp; backdrops</li>
+            <li>Seating charts &amp; table numbers</li>
+            <li>VIP &amp; accreditation signs</li>
+          </ul>
+        </div>
+      </div>
+      <p class="finishes-note">Every piece can be made in clear, frosted, coloured, mirrored or fluorescent acrylic — laser-cut, engraved, UV-printed or edge-lit with LED, and combined with wood or metal for extra depth.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ===== LOOKBOOK / CATEGORY OVERVIEW ===== -->
+  <section id="lookbook">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">The lookbook</div>
+        <h2 class="section-h">What we make</h2>
+        <p class="section-p">Every piece can be resized, recoloured and relabelled to order.</p>
+      </div>
+      <div class="catgrid" id="catGrid"></div>
+    </div>
+  </section>
+
+  <!-- category detail sections injected by JS -->
+  <div id="categorySections"></div>
+
+  <hr class="rule">
+
+  <!-- ===== PROCESS ===== -->
+  <section id="process">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">How an order runs</div>
+        <h2 class="section-h">From brief to a piece on your wall or table</h2>
+        <p class="section-p">The same four steps, every order.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><h4>Send your brief</h4><p>Product, size, and your logo or text.</p></div>
+        <div class="step"><div class="num">2</div><h4>Approve the proof</h4><p>A to-scale proof, before anything is cut.</p></div>
+        <div class="step"><div class="num">3</div><h4>Cut and finish</h4><p>Laser-cut, engraved or printed, then polished.</p></div>
+        <div class="step"><div class="num">4</div><h4>Deliver or install</h4><p>Shipped nationwide, or installed locally.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WHO ORDERS ===== -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker amber">Who orders from us</div>
+        <h2 class="section-h">A wide range of buyers</h2>
+      </div>
+      <div class="audience">
+        <div><svg class="icon"><use href="#icon-sign"></use></svg>Offices &amp; clinics</div>
+        <div><svg class="icon"><use href="#icon-qr"></use></svg>Cafés &amp; restaurants</div>
+        <div><svg class="icon"><use href="#icon-stand"></use></svg>Retail shops</div>
+        <div><svg class="icon"><use href="#icon-arch"></use></svg>Wedding planners</div>
+        <div><svg class="icon"><use href="#icon-key"></use></svg>Individual buyers</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ===== PRICING ===== -->
+  <section id="pricing">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Pricing</div>
+        <h2 class="section-h">Every piece is made to order.</h2>
+        <p class="section-p">Quoted once we know your size, finish and quantity.</p>
+      </div>
+      <div class="price-strip">
+        <a class="price-tile" href="#weddings"><h4>Customize</h4><p>Customized products based on your needs.</p></a>
+        <a class="price-tile" href="#signage"><h4>Business solutions</h4><p>Signage and displays, quoted for your space.</p></a>
+        <a class="price-tile" href="#weddings"><h4>Events &amp; weddings</h4><p>Packages for welcome boards, seating and table pieces.</p></a>
+        <a class="price-tile" href="#contact"><h4>Request a quotation</h4><p>Large or installed projects, quoted after a quick chat.</p></a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ===== CONTACT ===== -->
+  <section id="contact">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Get a quotation</div>
+        <h2 class="section-h">Tell us what you're picturing</h2>
+        <p class="section-p">Send your idea, size and logo — we'll reply with a proof and price.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-cta">
+          <h3>Message us directly</h3>
+          <p>Fastest way to get a quote.</p>
+          <a class="btn btn-primary" href="https://wa.me/60123700861" target="_blank" rel="noopener"><svg class="icon" style="width:18px;height:18px;stroke:var(--paper)"><use href="#icon-chat"></use></svg>Message on WhatsApp</a>
+        </div>
+        <div class="info-cols">
+          <div>
+            <h5>Studio</h5>
+            <span style="color:#D9D9D9;padding:5px 0;display:block;font-size:0.92rem">Kepong, Kuala Lumpur, Malaysia</span>
+            <a href="tel:+60123700861">012-370 0861</a>
+          </div>
+          <div>
+            <h5>Explore</h5>
+            <a href="#signage">Business signage</a>
+            <a href="#weddings">Weddings &amp; events</a>
+            <a href="#corporate">Corporate &amp; gifts</a>
+            <a href="#pricing">Pricing</a>
+          </div>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <span>© 2026 JIT Acrylic.</span>
+        <span>Design proofs before every cut. No minimum on personalised pieces.</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- theme toggle ---------------- */
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  try{
+    var saved = localStorage.getItem('jitacrylic-theme');
+    if(saved === 'light' || saved === 'dark'){ root.setAttribute('data-theme', saved); }
+  }catch(e){}
+  themeBtn.addEventListener('click', function(){
+    var current = root.getAttribute('data-theme');
+    var isDark = current ? current === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('jitacrylic-theme', next); }catch(e){}
+  });
+
+  /* ---------------- mobile nav ---------------- */
+  var hamburger = document.getElementById('hamburger');
+  var primaryNav = document.getElementById('primaryNav');
+  hamburger.addEventListener('click', function(){
+    var open = primaryNav.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  primaryNav.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){ primaryNav.classList.remove('open'); hamburger.setAttribute('aria-expanded','false'); });
+  });
+
+  /* ---------------- category + product data ---------------- */
+  var CATS = [
+    {
+      id:'signage', tone:'tone-teal', icon:'icon-sign', area:'cat-sig',
+      name:'Business signage', short:'Logo signs, reception boards and wayfinding.',
+      blurb:'Signs and lettering for offices, clinics, shops and hotels.',
+      highlights:[
+        {n:'Custom acrylic logo sign', w:'Offices, salons, cafés &amp; clinics', o:'Clear, frosted, coloured, layered or backlit'},
+        {n:'Acrylic reception sign', w:'Offices, hotels &amp; clinics', o:'Wall-mounted or stand-mounted'},
+        {n:'3D acrylic lettering', w:'Shops, offices &amp; boutiques', o:'Flat, raised, painted or metallic finish'}
+      ],
+      more:[
+        {n:'Acrylic door sign', w:'Room name, department or staff name'},
+        {n:'Acrylic room number', w:'Printed, engraved or raised lettering'},
+        {n:'Acrylic wayfinding sign', w:'Arrow, floor directory or toilet signs'},
+        {n:'Business QR code sign', w:'Payment, WhatsApp, Google Review or menu'},
+        {n:'No-smoking &amp; safety signs', w:'Standard or branded designs'},
+        {n:'Opening-hours sign', w:'Hanging, wall-mounted or countertop'},
+        {n:'Acrylic Open / Closed sign', w:'Printed, engraved or reversible'}
+      ]
+    },
+    {
+      id:'cafe', tone:'tone-teal', icon:'icon-qr', area:'cat-cafe',
+      name:'Café &amp; restaurant', short:'QR stands, table numbers and menu displays.',
+      blurb:'QR stands, table numbers and menu boards for the counter.',
+      highlights:[
+        {n:'Custom QR acrylic stand', w:'Cafés, restaurants, salons, counters', o:'Clear, frosted, coloured or printed'},
+        {n:'Acrylic lightbox', w:'Cafés &amp; restaurants', o:'Backlit, single or double-sided'},
+        {n:'Shopfront signage', w:'Café storefronts', o:'Logo, hours &amp; wayfinding'},
+        {n:'Acrylic menu holder', w:'Cafés &amp; restaurants', o:'A4, A5, A6, portrait or landscape'},
+        {n:'Acrylic table number', w:'Cafés &amp; restaurants', o:'Clear, coloured, metallic or wood base'}
+      ],
+      more:[
+        {n:'Table tent card', w:'Promotions, reservations or social media'},
+        {n:'Acrylic price holder', w:'L-shape, T-shape or custom size'},
+        {n:'Cake display label', w:'Product name, flavour &amp; price'},
+        {n:'Buffet label', w:'Food name, ingredients &amp; allergy info'},
+        {n:'Reserved table sign', w:'Branded café design'},
+        {n:'Loyalty card holder', w:'Countertop or wall-mounted'},
+        {n:'Receipt / order-number holder', w:'Custom printed branding'},
+        {n:'Condiment or straw organizer', w:'Clear, smoked or coloured'},
+        {n:'Wall menu board', w:'UV-printed, layered or illuminated'}
+      ],
+      bundles:[
+        {h:'Café starter set', p:'QR stand, table numbers, menu holders and opening-hours sign, bundled.'},
+        {h:'Front-of-house brand identity', p:'Lightbox, shopfront signage and in-store branding, matched to your palette.'}
+      ]
+    },
+    {
+      id:'retail', tone:'tone-teal', icon:'icon-stand', area:'cat-retail',
+      name:'Retail display', short:'Stands, risers and holders for the shop floor.',
+      blurb:'Stands and holders that help shoppers see and buy.',
+      highlights:[
+        {n:'Acrylic lightbox', w:'Retail shopfronts', o:'Backlit, single or double-sided'},
+        {n:'Shopfront signage', w:'Retail storefronts', o:'Logo, hours &amp; wayfinding'},
+        {n:'Acrylic price tag holder', w:'Retail shelves &amp; counters', o:'Various sizes, clear or coloured'},
+        {n:'Product display stand', w:'Cosmetics, jewellery, electronics', o:'Tiered, single-level or custom'},
+        {n:'Acrylic brochure holder', w:'Offices, hotels, property agents', o:'Wall-mounted or countertop'}
+      ],
+      more:[
+        {n:'Tiered display stand', w:'Retail shops, exhibitions, collectors'},
+        {n:'Acrylic riser', w:'Product photography &amp; counters'},
+        {n:'Business card holder', w:'Reception counters &amp; events'},
+        {n:'Shelf label holder', w:'Grocers, boutiques, pharmacies'},
+        {n:'Acrylic poster holder', w:'Promotions &amp; notices'},
+        {n:'Product information stand', w:'Showrooms &amp; exhibitions'},
+        {n:'Jewellery display stand', w:'Jewellery &amp; accessories'},
+        {n:'Makeup or cosmetic organizer', w:'Beauty retailers'},
+        {n:'Acrylic shoe or bag stand', w:'Fashion retailers'},
+        {n:'Menu or catalogue stand', w:'Showrooms &amp; service counters'}
+      ],
+      bundles:[
+        {h:'Front-of-house brand identity', p:'Lightbox, shopfront signage and in-store branding, matched to your palette.'}
+      ]
+    },
+    {
+      id:'corporate', tone:'tone-teal', icon:'icon-award', area:'cat-corp',
+      name:'Corporate &amp; personalized gifts', short:'Nameplates, awards, desk pieces and personalised keepsakes.',
+      blurb:'Nameplates and awards for the office, plus a name, photo or date, cut for someone specific.',
+      highlights:[
+        {n:'Acrylic business card holder', w:'Reception desks &amp; offices', o:'Logo engraving or UV print'},
+        {n:'Acrylic desk nameplate', w:'Offices &amp; executives', o:'Name, position, logo, wood base'},
+        {n:'Acrylic award', w:'Companies &amp; events', o:'Custom shape, logo, message'},
+        {n:'Appreciation plaque', w:'HR &amp; leadership teams', o:'Anniversary, retirement or service award'},
+        {n:'Acrylic keychain', w:'Individual buyers &amp; gifting', o:'Name, logo, photo or QR code'},
+        {n:'Photo acrylic plaque', w:'Personal keepsakes', o:'Photo, message &amp; date'},
+        {n:'Custom LED name lamp', w:'Home décor &amp; gifting', o:'Name, logo or quote'},
+        {n:'Baby name plaque', w:'New parents', o:'Name, birth date &amp; weight'},
+        {n:'Graduation plaque', w:'Graduates &amp; families', o:'Name, university &amp; year'}
+      ],
+      more:[
+        {n:'Executive nameplate', w:'Premium clear, black, gold or smoked'},
+        {n:'Employee recognition plaque', w:'Name, award &amp; branding'},
+        {n:'Certificate holder', w:'Corporate or event design'},
+        {n:'Table number for events', w:'Acrylic, metallic or wood combo'},
+        {n:'Desk calendar', w:'Logo &amp; yearly design'},
+        {n:'Acrylic photo block', w:'Corporate memory or milestone'},
+        {n:'Logo paperweight', w:'Printed or engraved'},
+        {n:'Meeting room sign', w:'Available / Occupied or room name'},
+        {n:'Company policy display', w:'Reception &amp; office walls'},
+        {n:'Acrylic night light', w:'Character, couple or family design'},
+        {n:'Couple name sign', w:'Names, anniversary &amp; date'},
+        {n:'Family name plaque', w:'Family name &amp; members'},
+        {n:'Pet memorial plaque', w:'Photo &amp; message'},
+        {n:'Custom luggage tag', w:'Name &amp; contact details'},
+        {n:'Acrylic bookmark', w:'Name, quote or logo'},
+        {n:'Fridge magnet', w:'Photo, logo or event theme'},
+        {n:'Acrylic ornament', w:'Christmas, festive or decorative'},
+        {n:'Custom desk sign', w:'Name, quote or job title'}
+      ]
+    },
+    {
+      id:'weddings', tone:'tone-amber', icon:'icon-arch', area:'cat-wed',
+      name:'Weddings &amp; events', short:'Welcome boards, seating charts, table pieces.',
+      blurb:'Welcome boards, seating charts and table pieces, made to match your theme.',
+      highlights:[
+        {n:'Wedding welcome board', w:'Couples &amp; wedding planners', o:'Arch, rectangle, wave or custom shape'},
+        {n:'Wedding seating chart', w:'Reception venues', o:'Sheet with stand or hanging design'},
+        {n:'Acrylic place card', w:'Guest tables', o:'Guest name &amp; table number'},
+        {n:'Custom cake topper', w:'Wedding &amp; birthday cakes', o:'Names, date or phrase'}
+      ],
+      more:[
+        {n:'Table number', w:'Minimalist, floral, gold or mirror'},
+        {n:'Reserved sign', w:'Matching wedding theme'},
+        {n:'Bar menu', w:'Clear, frosted or coloured'},
+        {n:'Guestbook sign', w:'Acrylic instruction board'},
+        {n:'Wedding hashtag sign', w:'Social-media-focused design'},
+        {n:'Bridal table sign', w:'Couple names &amp; date'},
+        {n:'Gift table sign', w:'Matching stationery set'},
+        {n:'Welcome sign for events', w:'Corporate, birthday or baby shower'},
+        {n:'Birthday backdrop sign', w:'Name, age &amp; theme'},
+        {n:'Baby shower sign', w:'Pastel, floral or cartoon style'},
+        {n:'Graduation sign', w:'Name, course &amp; year'}
+      ]
+    },
+    {
+      id:'home', tone:'tone-amber', icon:'icon-shelf', area:'cat-home',
+      name:'Home &amp; organization', short:'Organizers, shelves and holders.',
+      blurb:'Small, useful pieces for the desk, kitchen and entryway.',
+      highlights:[
+        {n:'Acrylic makeup organizer', w:'Cosmetics &amp; skincare', o:'Various compartment layouts'},
+        {n:'Acrylic book stand', w:'Reading &amp; display', o:'Single or multi-book'}
+      ],
+      more:[
+        {n:'Acrylic stationery organizer', w:'Home office &amp; students'},
+        {n:'Remote-control holder', w:'Living room'},
+        {n:'Wall-mounted key holder', w:'Entryway'},
+        {n:'Acrylic shelf', w:'Small décor &amp; collectibles'},
+        {n:'Cable organizer', w:'Desk setup'},
+        {n:'Headphone stand', w:'Gaming &amp; office desks'},
+        {n:'Recipe holder', w:'Kitchen'},
+        {n:'Acrylic photo frame', w:'Home décor'},
+        {n:'Plant label', w:'Home gardening'},
+        {n:'Pet name sign', w:'Pet rooms or cages'}
+      ]
+    },
+    {
+      id:'auto', tone:'tone-amber', icon:'icon-car', area:'cat-auto',
+      name:'Automotive', short:'Small, durable pieces for the car.',
+      blurb:'Compact, durable pieces made for the inside of a car.',
+      highlights:[
+        {n:'Car road-tax holder', w:'Drivers &amp; vehicle owners', o:'Name, logo or vehicle number'},
+        {n:'RFID card holder', w:'Toll &amp; parking users', o:'Custom print or colour'}
+      ],
+      more:[
+        {n:'Car air-freshener tag', w:'Name, logo or design'},
+        {n:'Parking number sign', w:'Apartment or office use'},
+        {n:'Vehicle key tag', w:'Registration number or company logo'},
+        {n:'Motorcycle key tag', w:'Name or plate number'},
+        {n:'Car club plaque', w:'Club name &amp; member details'},
+        {n:'Dashboard display card', w:'Contact number or emergency message'}
+      ]
+    }
+  ];
+
+  function el(html){ var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
+
+  /* ---- render category overview tiles ---- */
+  var catGrid = document.getElementById('catGrid');
+  CATS.forEach(function(c){
+    catGrid.appendChild(el(
+      '<a class="'+c.area+'" href="#'+c.id+'">' +
+        '<svg class="icon"><use href="#'+c.icon+'"></use></svg>' +
+        '<div><h3>'+c.name+'</h3><p>'+c.short+'</p></div>' +
+      '</a>'
+    ));
+  });
+
+  /* ---- render category detail sections ---- */
+  var host = document.getElementById('categorySections');
+  CATS.forEach(function(c){
+    var highlightsHtml = c.highlights.map(function(p){
+      return '<div class="pcard"><h4>'+p.n+'</h4><p class="who">'+p.w+'</p><p class="opts">'+(p.o||'')+'</p></div>';
+    }).join('');
+
+    var moreHtml = c.more.map(function(p){
+      return '<div class="mrow"><span class="mname">'+p.n+'</span><span class="mwho">'+p.w+'</span></div>';
+    }).join('');
+
+    var bundleHtml = (c.bundles || []).map(function(b){
+      return '<div class="bundle"><div><h4>'+b.h+'</h4><p>'+b.p+'</p></div><a class="btn btn-line" href="#contact">Ask about this bundle</a></div>';
+    }).join('');
+
+    var section = el(
+      '<section id="'+c.id+'" class="cat-section '+c.tone+'">' +
+        '<div class="wrap">' +
+          '<div class="section-head">' +
+            '<div class="cat-icon-badge"><svg class="icon"><use href="#'+c.icon+'"></use></svg></div>' +
+            '<div><div class="kicker'+(c.tone==='tone-amber'?' amber':'')+'">Category</div><h2 class="section-h">'+c.name+'</h2><p class="section-p">'+c.blurb+'</p></div>' +
+          '</div>' +
+          '<div class="pgrid">'+highlightsHtml+'</div>' +
+          '<details class="more"><summary><svg class="icon"><use href="#icon-plus"></use></svg>View the full '+c.name.replace('&amp;','&')+' range ('+c.more.length+' more)</summary><div class="mlist">'+moreHtml+'</div></details>' +
+          bundleHtml +
+        '</div>' +
+      '</section>'
+    );
+    host.appendChild(section);
+    host.appendChild(el('<hr class="rule">'));
+  });
+})();
+</script>
+</body>
+</html>
